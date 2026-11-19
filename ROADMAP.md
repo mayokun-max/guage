@@ -1,6 +1,6 @@
 # ROADMAP: Gauge
 
-Last updated: 2026-11-09T14:40Z (update Drips Wave 11 submission packet and sibling comparison)
+Last updated: 2026-11-19T11:06Z (fingerprint evidence after the format-character filter)
 Roadmap version: 3
 
 This file is the single source of truth for remaining work. It is read before every task and updated after every change.
@@ -40,7 +40,7 @@ The repository is 100% ready when every task in Phases 0 to 6 is done and every 
 | 4 | Dogfood and release v0.1.0 | 2 | 9 | 22% |
 | 5 | v0.2 features | 3 | 11 | 27% |
 | 6 | Release v0.2.0 and community | 0 | 5 | 0% |
-| 7 (backlog) | Backlog | 0 | 4 | 0% |
+| 7 (backlog) | Backlog | 1 | 5 | 20% |
 | **Phases 0 to 6** | **Readiness total** | **56** | **79** | **70%** |
 | Gates | G1 to G10 | 3 | 10 | 30% |
 <!-- PROGRESS:END -->
@@ -226,6 +226,7 @@ Constraint on the two remaining experimental tasks: Gauge never builds or submit
 - [ ] **7.2** Claimable balances, liquidity pool shares and sponsorship analysis.
 - [ ] **7.3** Alert integrations (probably never; JSON and CI cover it).
 - [ ] **7.4** Cross-check issued assets against `stellar.toml` currencies.
+- [x] **7.5** Fingerprint evidence after the format-character filter, so evidence that prints the same hashes the same. `NewFinding` hashes `normalize(evidence)`, and `normalize` only ran `strings.Fields`, so U+200B, U+202E and U+FEFF reached the sha256 input while `sanitize.Text` dropped them from every rendered line: two findings could print identical evidence and carry different fingerprints, which breaks the `fingerprint:` line and the accept keys that read it. `normalize` now drops every rune matching `unicode.Is(unicode.Cf, r)` before `strings.Fields`, with a comment naming the classes `sanitize.isDropped` also removes and why they are not copied here; `model` still imports nothing from this module. `finding_normalize_test.go` fails without the filter, all five format-character cases, and still requires different evidence to differ. No golden moved, because no committed evidence carries a Cf rune.
 
 ## 6. Dependency map (critical path)
 
@@ -276,6 +277,7 @@ Newest first. One row per merged change.
 
 | Date (UTC) | Change | Tasks |
 |---|---|---|
+| 2026-11-19 | Task 7.5 fixed the fingerprint's blind spot for Unicode format characters. `normalize` in `internal/model/finding.go` collapsed whitespace but kept Cf runes, which `sanitize.Text` drops before printing, so U+200B, U+202E and U+FEFF changed the digest while leaving the rendered evidence identical. `normalize` now removes every rune matching `unicode.Is(unicode.Cf, r)` before `strings.Fields`, and `finding_normalize_test.go` proves U+200B, U+FEFF, U+202E and U+2060 collapse to the clean digest while different evidence still differs; the test failed on all five format-character cases before the change. No committed evidence carried a Cf rune, so no golden moved, and `internal/sanitize`, `internal/report` and the separator byte are unchanged. Readiness stays 56 of 79 because Phase 7 does not count; Phase 7 moves to 1 of 5. | 7.5 |
 | 2026-11-09 | Updated Drips Wave submission packet (docs/WAVE_SUBMISSION.md) for Wave 11: confirmed 200 unit tests passing, all 16 rules registered, OpenSSF Scorecard at 6.8 with live badge, live documentation site at https://posture-sec.github.io/guage/, dynamic README metric sync, and updated sibling comparison data across org repositories. | none ticked |
 | 2026-11-09 | Finalized project naming by removing all occurrences of "working name" across repository documentation, PRD, architecture, and roadmap files. Implemented dynamic README metrics synchronization (`scripts/sync_readme.py`) generating live Shields.io endpoint JSON files under `site/data/` for 200 tests and 16 rules, and enforced with `--check` in the `roadmap-check` workflow. | none ticked |
 | 2026-11-09 | Add Docs Live badge to README and prominent navigation links to the 7-page live documentation site. | none ticked |

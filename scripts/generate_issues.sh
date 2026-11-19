@@ -111,6 +111,7 @@ backlog() {
     '6.3	type: research	area: rules	docs(triage): review external false-positive reports' \
     '6.4	type: research	area: docs	docs(decisions): decide funding and applications (D-07)' \
     '6.5	type: docs	area: docs	docs(outreach): contact issuers, anchors and treasury teams' \
+    '7.5	type: security	area: model	security(model): hash evidence after format-character stripping' \
     'G1	type: test	area: rules	gate: every P0 requirement has passing tests' \
     'G2	type: test	area: rules	gate: every scenario has a fixture and expected findings' \
     'G3	type: test	area: cli	gate: fail-closed paths all exit non-zero' \
