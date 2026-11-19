@@ -1,6 +1,6 @@
 # ROADMAP: Gauge
 
-Last updated: 2026-11-19T11:06Z (fingerprint evidence after the format-character filter)
+Last updated: 2026-11-19T11:23Z (scope accepted risks to one network)
 Roadmap version: 3
 
 This file is the single source of truth for remaining work. It is read before every task and updated after every change.
@@ -40,7 +40,7 @@ The repository is 100% ready when every task in Phases 0 to 6 is done and every 
 | 4 | Dogfood and release v0.1.0 | 2 | 9 | 22% |
 | 5 | v0.2 features | 3 | 11 | 27% |
 | 6 | Release v0.2.0 and community | 0 | 5 | 0% |
-| 7 (backlog) | Backlog | 1 | 5 | 20% |
+| 7 (backlog) | Backlog | 2 | 6 | 33% |
 | **Phases 0 to 6** | **Readiness total** | **56** | **79** | **70%** |
 | Gates | G1 to G10 | 3 | 10 | 30% |
 <!-- PROGRESS:END -->
@@ -227,6 +227,7 @@ Constraint on the two remaining experimental tasks: Gauge never builds or submit
 - [ ] **7.3** Alert integrations (probably never; JSON and CI cover it).
 - [ ] **7.4** Cross-check issued assets against `stellar.toml` currencies.
 - [x] **7.5** Fingerprint evidence after the format-character filter, so evidence that prints the same hashes the same. `NewFinding` hashes `normalize(evidence)`, and `normalize` only ran `strings.Fields`, so U+200B, U+202E and U+FEFF reached the sha256 input while `sanitize.Text` dropped them from every rendered line: two findings could print identical evidence and carry different fingerprints, which breaks the `fingerprint:` line and the accept keys that read it. `normalize` now drops every rune matching `unicode.Is(unicode.Cf, r)` before `strings.Fields`, with a comment naming the classes `sanitize.isDropped` also removes and why they are not copied here; `model` still imports nothing from this module. `finding_normalize_test.go` fails without the filter, all five format-character cases, and still requires different evidence to differ. No golden moved, because no committed evidence carries a Cf rune.
+- [x] **7.6** Scope an accepted risk to the network it names. `policy.Acceptance` gained an optional `network`, validated through `validNetwork`, and `applyAccepts` compares it with the passphrase the endpoint reported, so a testnet acceptance no longer silences the same G address on mainnet while an entry that names no network keeps the meaning it had. The duplicate check keys on rule, account and network, so one account may pin both networks. `accept_network_test.go` runs the mainnet finding under a testnet entry first and then proves unpinned entries still match; the fingerprint, the separator and every golden are untouched because accepts match on the key rather than the digest.
 
 ## 6. Dependency map (critical path)
 
@@ -277,6 +278,7 @@ Newest first. One row per merged change.
 
 | Date (UTC) | Change | Tasks |
 |---|---|---|
+| 2026-11-19 | Task 7.6 scoped an accepted risk to the network it names. `policy.Acceptance` gained an optional `network` (an alias or a full passphrase, validated through `validNetwork`), and `run.applyAccepts` now receives the passphrase the endpoint reported and skips an entry pinned to another network. A G address is the same key on both networks and threshold evidence can match, so before this a testnet acceptance marked a mainnet finding accepted with nothing in the report saying why; an entry with no network keeps its old meaning. Duplicate detection keys on rule, account and network so both networks can be pinned for one account. `internal/run/accept_network_test.go` proves the cross-network case and the unpinned cases, `internal/policy/accept_test.go` covers the field's shape and the dedupe key, and the fingerprint, the separator byte and all goldens are unchanged. Readiness stays 56 of 79; Phase 7 moves to 2 of 6. `PRD.md` 6.3 and FR-07, `gauge.example.toml` and `site/policy.html` describe the new key. | 7.6 |
 | 2026-11-19 | Task 7.5 fixed the fingerprint's blind spot for Unicode format characters. `normalize` in `internal/model/finding.go` collapsed whitespace but kept Cf runes, which `sanitize.Text` drops before printing, so U+200B, U+202E and U+FEFF changed the digest while leaving the rendered evidence identical. `normalize` now removes every rune matching `unicode.Is(unicode.Cf, r)` before `strings.Fields`, and `finding_normalize_test.go` proves U+200B, U+FEFF, U+202E and U+2060 collapse to the clean digest while different evidence still differs; the test failed on all five format-character cases before the change. No committed evidence carried a Cf rune, so no golden moved, and `internal/sanitize`, `internal/report` and the separator byte are unchanged. Readiness stays 56 of 79 because Phase 7 does not count; Phase 7 moves to 1 of 5. | 7.5 |
 | 2026-11-09 | Updated Drips Wave submission packet (docs/WAVE_SUBMISSION.md) for Wave 11: confirmed 200 unit tests passing, all 16 rules registered, OpenSSF Scorecard at 6.8 with live badge, live documentation site at https://posture-sec.github.io/guage/, dynamic README metric sync, and updated sibling comparison data across org repositories. | none ticked |
 | 2026-11-09 | Finalized project naming by removing all occurrences of "working name" across repository documentation, PRD, architecture, and roadmap files. Implemented dynamic README metrics synchronization (`scripts/sync_readme.py`) generating live Shields.io endpoint JSON files under `site/data/` for 200 tests and 16 rules, and enforced with `--check` in the `roadmap-check` workflow. | none ticked |
