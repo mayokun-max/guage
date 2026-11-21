@@ -1,6 +1,6 @@
 # ROADMAP: Gauge
 
-Last updated: 2026-11-21T10:25Z (tasks 7.38-7.40: mismatch short-circuit, bounded check concurrency, and format rejection)
+Last updated: 2026-11-21T10:30Z (task 7.41: drop format characters before hashing evidence)
 Roadmap version: 3
 
 This file is the single source of truth for remaining work. It is read before every task and updated after every change.
@@ -40,7 +40,7 @@ The repository is 100% ready when every task in Phases 0 to 6 is done and every 
 | 4 | Dogfood and release v0.1.0 | 4 | 9 | 44% |
 | 5 | v0.2 features | 5 | 11 | 45% |
 | 6 | Release v0.2.0 and community | 1 | 5 | 20% |
-| 7 (backlog) | Backlog | 32 | 36 | 88% |
+| 7 (backlog) | Backlog | 33 | 37 | 89% |
 | **Phases 0 to 6** | **Readiness total** | **63** | **79** | **79%** |
 | Gates | G1 to G10 | 7 | 10 | 70% |
 <!-- PROGRESS:END -->
@@ -259,6 +259,7 @@ Constraint on the two remaining experimental tasks: Gauge never builds or submit
 - [x] **7.38** test(run): prove a network mismatch skips identity fetches too. S. Deps: none. Done when: `internal/run/mismatch_short_circuit_test.go` drives `Check` on testnet against a mainnet source whose account read and identity factory are fatal tripwires, and asserts two skipped high mismatch findings plus `ExitFindings`. (done 2026-11-20: added the test and confirmed it passes under the race detector; issue #208.)
 - [x] **7.39** feat(cli): expose bounded concurrency on `check`. M. Deps: none. Done when: `--concurrency` defaults to 8, accepts 1 through 32, reports exit 2 outside the range, reaches `CheckRequest.Concurrency`, and `cmd/stellar-gauge/concurrency_flag_test.go` measures peak in-flight account reads at 1 and the default. (done 2026-11-20: added `parseConcurrency`, threaded the value to `run.Check`, and measured peak account reads through an injected source; issue #209.)
 - [x] **7.40** fix(cli): share format rejection diagnostics. S. Deps: none. Done when: `cmd/stellar-gauge/format.go` supplies the markdown-specific and generic messages, and both `check` and `audit` use the helper for rejected formats; existing markdown support remains enabled. (done 2026-11-20: both commands now use the helper and `format_flag_test.go` pins the identical exit-2 line for YAML and empty formats; markdown remains accepted as implemented in task 5.3; issue #210.)
+- [x] **7.41** Fingerprint evidence after the format-character filter, so evidence that prints the same hashes the same. S. Deps: 2.1. Done when: `normalize` in `internal/model/finding.go` drops every rune matching `unicode.Is(unicode.Cf, r)` before `strings.Fields`; `internal/model/finding_normalize_test.go` verifies format characters collapse to the clean digest. (done 2026-11-19; issue #125)
 ## 6. Dependency map (critical path)
 
 `0.2, 0.4 -> 1.1 -> 1.4 -> 2.1 -> 2.2, 2.3, 2.5 -> 2.7 -> 2.8 -> 2.9 -> 3.1 to 3.5 -> 3.7 -> 4.1 -> 4.8`
@@ -308,6 +309,7 @@ Newest first. One row per merged change.
 
 | Date (UTC) | Change | Tasks |
 |---|---|---|
+| 2026-11-20 | Task 7.41 (close #125): drop Unicode format characters (category Cf) before hashing evidence in `model.Finding`, with tests covering U+200B, U+FEFF, U+202E, U+2060. | 7.41 |
 | 2026-11-20 | Close #208, #209 and #210. Added a network-mismatch short-circuit test with fatal account and identity tripwires. Exposed bounded `check --concurrency` (default 8, range 1–32) and measured peak account reads through the CLI request path. Shared the rejected-format diagnostic between `check` and `audit`; existing markdown output remains supported. Updated the backlog generator and project structure. | 7.38, 7.39, 7.40 |
 | 2026-11-20 | Task 6.2: prepare the v0.2.0 attested release workflow in .github/workflows/release.yml with build provenance attestation and verify instructions in docs/RELEASE.md. | none ticked |
 | 2026-11-20 | Task 6.1 (close #61): align v0.2 documents across PRD.md, ARCHITECTURE.md, and ARCHITECTURE_ESSENTIALS.md; mark task 6.1 complete. | 6.1 |
@@ -331,6 +333,7 @@ Newest first. One row per merged change.
 | 2026-11-19 | Tasks 7.14 to 7.16: added golden-free contract tests in `internal/report`. `limits_test.go` pins the limits footer as the last text line, after `exit code:`, and as a single top-level JSON key. `empty_test.go` pins the empty report in both formats, with `accounts` as `[]` and not `null`. `nil_facts_test.go` pins nil and empty fact blocks: findings still print, no fact line is invented, and JSON omits `facts`. Each test was shown to fail against a deliberately broken renderer. No production code changed. Backlog rows added to `scripts/generate_issues.sh`; `project_structure.md` lists the new files. | 7.14, 7.15, 7.16 |
 | 2026-11-19 | CI: the roadmap gate no longer asks a pull request to rewrite the README metrics row or the badge endpoints. `scripts/sync_readme.py --check-base` fails when a branch touches either, so the script stays their only writer and two test-adding PRs cannot conflict on the same count line. Documented in `AGENTS.md` section 5 and `CONTRIBUTING.md`. | 1.9 |
 | 2026-11-19 | Task 7.10: added `Valid` and `Equal` to `model.Thresholds` and `model.Flags`, with boundary, equality and sixteen-combination tests in `internal/model/account_thresholds_test.go`. A threshold outside 0 to 255 in a decode or fixture is now detectable; the drift rules and their messages are unchanged. Backlog row added to `scripts/generate_issues.sh`. | 7.10 |
+>>>>>>> origin/main
 | 2026-11-09 | Updated Drips Wave submission packet (docs/WAVE_SUBMISSION.md) for Wave 11: confirmed 200 unit tests passing, all 16 rules registered, OpenSSF Scorecard at 6.8 with live badge, live documentation site at https://posture-sec.github.io/guage/, dynamic README metric sync, and updated sibling comparison data across org repositories. | none ticked |
 | 2026-11-09 | Finalized project naming by removing all occurrences of "working name" across repository documentation, PRD, architecture, and roadmap files. Implemented dynamic README metrics synchronization (`scripts/sync_readme.py`) generating live Shields.io endpoint JSON files under `site/data/` for 200 tests and 16 rules, and enforced with `--check` in the `roadmap-check` workflow. | none ticked |
 | 2026-11-09 | Add Docs Live badge to README and prominent navigation links to the 7-page live documentation site. | none ticked |
