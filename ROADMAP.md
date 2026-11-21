@@ -1,6 +1,6 @@
 # ROADMAP: Gauge
 
-Last updated: 2026-11-21T10:30Z (task 7.41: drop format characters before hashing evidence)
+Last updated: 2026-11-21T10:35Z (task 7.42: scope accepted risks to one network)
 Roadmap version: 3
 
 This file is the single source of truth for remaining work. It is read before every task and updated after every change.
@@ -40,7 +40,7 @@ The repository is 100% ready when every task in Phases 0 to 6 is done and every 
 | 4 | Dogfood and release v0.1.0 | 4 | 9 | 44% |
 | 5 | v0.2 features | 5 | 11 | 45% |
 | 6 | Release v0.2.0 and community | 1 | 5 | 20% |
-| 7 (backlog) | Backlog | 33 | 37 | 89% |
+| 7 (backlog) | Backlog | 34 | 38 | 89% |
 | **Phases 0 to 6** | **Readiness total** | **63** | **79** | **79%** |
 | Gates | G1 to G10 | 7 | 10 | 70% |
 <!-- PROGRESS:END -->
@@ -260,6 +260,7 @@ Constraint on the two remaining experimental tasks: Gauge never builds or submit
 - [x] **7.39** feat(cli): expose bounded concurrency on `check`. M. Deps: none. Done when: `--concurrency` defaults to 8, accepts 1 through 32, reports exit 2 outside the range, reaches `CheckRequest.Concurrency`, and `cmd/stellar-gauge/concurrency_flag_test.go` measures peak in-flight account reads at 1 and the default. (done 2026-11-20: added `parseConcurrency`, threaded the value to `run.Check`, and measured peak account reads through an injected source; issue #209.)
 - [x] **7.40** fix(cli): share format rejection diagnostics. S. Deps: none. Done when: `cmd/stellar-gauge/format.go` supplies the markdown-specific and generic messages, and both `check` and `audit` use the helper for rejected formats; existing markdown support remains enabled. (done 2026-11-20: both commands now use the helper and `format_flag_test.go` pins the identical exit-2 line for YAML and empty formats; markdown remains accepted as implemented in task 5.3; issue #210.)
 - [x] **7.41** Fingerprint evidence after the format-character filter, so evidence that prints the same hashes the same. S. Deps: 2.1. Done when: `normalize` in `internal/model/finding.go` drops every rune matching `unicode.Is(unicode.Cf, r)` before `strings.Fields`; `internal/model/finding_normalize_test.go` verifies format characters collapse to the clean digest. (done 2026-11-19; issue #125)
+- [x] **7.42** Scope accepted risks to one network. S. Deps: 2.4. Done when: `internal/policy/accept.go` gains optional `network` key in `[[accept]]` blocks, matching against `NetworkPassphrase`; unpinned entries continue matching all networks; `internal/run/accept_network_test.go` verifies isolation between mainnet and testnet. (done 2026-11-19; issue #126)
 ## 6. Dependency map (critical path)
 
 `0.2, 0.4 -> 1.1 -> 1.4 -> 2.1 -> 2.2, 2.3, 2.5 -> 2.7 -> 2.8 -> 2.9 -> 3.1 to 3.5 -> 3.7 -> 4.1 -> 4.8`
@@ -309,6 +310,7 @@ Newest first. One row per merged change.
 
 | Date (UTC) | Change | Tasks |
 |---|---|---|
+| 2026-11-20 | Task 7.42 (close #126): scope accepted risks to one network in policy and run, with tests covering network isolation in `internal/run/accept_network_test.go`. | 7.42 |
 | 2026-11-20 | Task 7.41 (close #125): drop Unicode format characters (category Cf) before hashing evidence in `model.Finding`, with tests covering U+200B, U+FEFF, U+202E, U+2060. | 7.41 |
 | 2026-11-20 | Close #208, #209 and #210. Added a network-mismatch short-circuit test with fatal account and identity tripwires. Exposed bounded `check --concurrency` (default 8, range 1–32) and measured peak account reads through the CLI request path. Shared the rejected-format diagnostic between `check` and `audit`; existing markdown output remains supported. Updated the backlog generator and project structure. | 7.38, 7.39, 7.40 |
 | 2026-11-20 | Task 6.2: prepare the v0.2.0 attested release workflow in .github/workflows/release.yml with build provenance attestation and verify instructions in docs/RELEASE.md. | none ticked |
